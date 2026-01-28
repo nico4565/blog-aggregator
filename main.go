@@ -1,24 +1,39 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/nico4565/blog-aggregator/internal/config"
 )
 
 func main() {
-	c, err := config.Read()
+	cfg, err := config.Read()
 	if err != nil {
 		log.Fatalf("Error! Couldn't read the config file: %v\n", err)
 	}
 
-	fmt.Printf("config file is:%v\n", c)
+	st := state{&cfg}
 
-	c.SetUser("test_user")
-	c, err = config.Read()
-	if err != nil {
-		log.Fatalf("Error!Couldn't read the config file: %v\n", err)
+	cmds := commands{
+		nameToHandlerMap: map[string]func(*state, command) error{},
 	}
-	fmt.Printf("config file is now:%v\n", c)
+
+	cmds.register("login", handlerLogin)
+
+	input := os.Args[:]
+	if len(input) < 2 {
+		log.Fatal("Not enough arguments, commands need a command name and 1 or more arguments!")
+	}
+
+	cmd := command{
+		name: input[1],
+		args: input[2:],
+	}
+
+	err = cmds.run(&st, cmd)
+	if err != nil {
+		log.Fatalf("Error:%s", err)
+	}
+
 }
