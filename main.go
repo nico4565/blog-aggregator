@@ -1,10 +1,13 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
+	_ "github.com/lib/pq"
 	"github.com/nico4565/blog-aggregator/internal/config"
+	"github.com/nico4565/blog-aggregator/internal/database"
 )
 
 func main() {
@@ -13,13 +16,20 @@ func main() {
 		log.Fatalf("Error! Couldn't read the config file: %v\n", err)
 	}
 
-	st := state{&cfg}
+	db, err := sql.Open("postgres", cfg.DBURL)
+	dbQueries := database.New(db)
+
+	st := state{dbQueries, &cfg}
 
 	cmds := commands{
 		nameToHandlerMap: map[string]func(*state, command) error{},
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
+	cmds.register("users", handlerUsers)
+	cmds.register("agg", handlerAgg)
 
 	input := os.Args[:]
 	if len(input) < 2 {
