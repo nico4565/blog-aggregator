@@ -54,7 +54,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		return fmt.Errorf("Error users not Found!\nError:%s", err)
 	}
 
-	params := database.CreateFeedParams{
+	params := database.StoreFeedParams{
 		ID:        id,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
@@ -63,7 +63,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		UserID:    uuid.NullUUID{UUID: user.ID, Valid: true},
 	}
 
-	feed, err := s.db.CreateFeed(cx, params)
+	feed, err := s.db.StoreFeed(cx, params)
 	if err != nil {
 		return err
 	}
