@@ -12,11 +12,11 @@ import (
 func handlerLogin(s *state, cmd command) error {
 
 	if len(cmd.args) > 1 {
-		return fmt.Errorf("Login needs only one string argument. Username field, no spaces!")
+		return fmt.Errorf("Login needs only one argument. Username field, no spaces!")
 	}
 
 	if len(cmd.args) < 1 {
-		return fmt.Errorf("Login needs one string argument. Username field, no spaces!")
+		return fmt.Errorf("Login needs one argument. Username field, no spaces!")
 	}
 
 	cx := context.Background()
@@ -39,11 +39,11 @@ func handlerLogin(s *state, cmd command) error {
 func handlerRegister(s *state, cmd command) error {
 
 	if len(cmd.args) > 1 {
-		return fmt.Errorf("Register needs only one string argument. Username field, no spaces!")
+		return fmt.Errorf("Register needs only one argument. Username field, no spaces!")
 	}
 
 	if len(cmd.args) < 1 {
-		return fmt.Errorf("Register needs one string argument. Username field, no spaces!")
+		return fmt.Errorf("Register needs one argument. Username field, no spaces!")
 	}
 
 	id := uuid.New()
@@ -104,7 +104,7 @@ func handlerUsers(s *state, cmd command) error {
 
 	users, err := s.db.GetUsers(cx)
 	if err != nil {
-		return fmt.Errorf("Error users not deleted!\nError:%s", err)
+		return fmt.Errorf("Error users not Found!\nError:%s", err)
 	}
 
 	if len(users) == 0 {
