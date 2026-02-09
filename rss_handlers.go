@@ -60,27 +60,60 @@ func handlerAddFeed(s *state, cmd command) error {
 		UpdatedAt: updatedAt,
 		Name:      name,
 		Url:       url,
-		UserID:    uuid.NullUUID{UUID: user.ID, Valid: true},
+		UserID:    user.ID,
 	}
 
-	feed, err := s.db.StoreFeed(cx, params)
+	_, err = s.db.StoreFeed(cx, params)
 	if err != nil {
 		return err
 	}
 
-	printFeedEntity(feed)
+	fmt.Println("Feed stored successfully!")
+
+	return nil
+}
+
+func handlerListFeeds(s *state, cmd command) error {
+
+	if len(cmd.args) > 0 {
+		return fmt.Errorf("No arguments needed")
+	}
+
+	cx := context.Background()
+
+	feeds, err := s.db.GetFeeds(cx)
+	if err != nil {
+		return fmt.Errorf("Error feeds not Found!\nError:%s", err)
+	}
+
+	if len(feeds) == 0 {
+		fmt.Println("No feeds stored yet!")
+		return nil
+	}
+
+	for i, feed := range feeds {
+		fmt.Printf("feed %d\n", i)
+		fmt.Println("")
+
+		printFeedEntity(feed)
+		user, err := s.db.GetUserById(cx, feed.UserID)
+		if err != nil {
+			return fmt.Errorf("GetUserById failed!\nError:%s", err)
+		}
+		fmt.Printf("UserName: %v\n", user.Name)
+		fmt.Println("")
+	}
 
 	return nil
 }
 
 func printFeedEntity(feed database.Feed) {
-	fmt.Printf("Printing feed stored")
-	fmt.Printf("ID: %v", feed.ID)
-	fmt.Printf("CreatedAt: %v", feed.CreatedAt)
-	fmt.Printf("UpdatedAt: %v", feed.UpdatedAt)
-	fmt.Printf("Name: %v", feed.Name)
-	fmt.Printf("Url: %v", feed.Url)
-	fmt.Printf("UserId: %v", feed.UserID)
+	fmt.Printf("ID: %v\n", feed.ID)
+	fmt.Printf("CreatedAt: %v\n", feed.CreatedAt)
+	fmt.Printf("UpdatedAt: %v\n", feed.UpdatedAt)
+	fmt.Printf("Name: %v\n", feed.Name)
+	fmt.Printf("Url: %v\n", feed.Url)
+	fmt.Printf("UserId: %v\n", feed.UserID)
 }
 
 func printRSSFeed(feed *RSSFeed) {
