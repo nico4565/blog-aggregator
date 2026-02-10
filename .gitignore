@@ -1,3 +1,4 @@
 .DS_Store
 *.log
-migrate.sh
+migrate_up.sh
+migrate_down.sh

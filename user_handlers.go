@@ -23,7 +23,7 @@ func handlerLogin(s *state, cmd command) error {
 
 	_, err := s.db.GetUser(cx, cmd.args[0])
 	if err != nil {
-		return err
+		return fmt.Errorf("User not found! Register your user :)")
 	}
 
 	err = s.configPtr.SetUser(cmd.args[0])
@@ -89,7 +89,7 @@ func handlerReset(s *state, cmd command) error {
 		return fmt.Errorf("Error users not deleted!\nError:%s", err)
 	}
 
-	fmt.Println("All users have been deleted!")
+	fmt.Println("All users and related user data have been deleted.")
 
 	return nil
 }
