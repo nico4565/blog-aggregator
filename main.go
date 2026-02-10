@@ -32,10 +32,10 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
 	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", middelwareLogingWrapper(handlerAddFeed))
+	cmds.register("addfeed", middlewareLogingWrapper(handlerAddFeed))
 	cmds.register("feeds", handlerListFeeds)
-	cmds.register("follow", middelwareLogingWrapper(handlerFollow))
-	cmds.register("following", middelwareLogingWrapper(handlerFollowing))
+	cmds.register("follow", middlewareLogingWrapper(handlerFollow))
+	cmds.register("following", middlewareLogingWrapper(handlerFollowing))
 
 	input := os.Args[:]
 	if len(input) < 2 {
@@ -54,7 +54,7 @@ func main() {
 
 }
 
-func middelwareLogingWrapper(handler func(s *state, cmd command, user database.User) error) func(s *state, cmd command) error {
+func middlewareLogingWrapper(handler func(s *state, cmd command, user database.User) error) func(s *state, cmd command) error {
 
 	return func(s *state, cmd command) error {
 		user, err := s.db.GetUser(context.Background(), s.configPtr.CurrentUserName)
