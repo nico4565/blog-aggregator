@@ -13,7 +13,7 @@ import (
 func handlerAgg(s *state, cmd command) error {
 
 	if len(cmd.args) > 0 {
-		return fmt.Errorf("No arguments needed")
+		return fmt.Errorf("Error! command %s doesn't need arguments!", cmd.name)
 	}
 
 	ctx := context.Background()
@@ -30,12 +30,8 @@ func handlerAgg(s *state, cmd command) error {
 
 func handlerAddFeed(s *state, cmd command, user database.User) error {
 
-	if len(cmd.args) > 2 {
-		return fmt.Errorf("AddFeed needs only 2 arguments. Rss name and url!")
-	}
-
-	if len(cmd.args) < 2 {
-		return fmt.Errorf("AddFeed needs 2 argument. Rss name and url!")
+	if len(cmd.args) != 2 {
+		return fmt.Errorf("Error! Command usage: %s <feed_name> <feed_url>", cmd.name)
 	}
 
 	id := uuid.New()

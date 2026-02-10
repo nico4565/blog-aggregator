@@ -10,30 +10,24 @@ import (
 )
 
 func handlerFollow(s *state, cmd command, user database.User) error {
-	if len(cmd.args) > 1 {
-		return fmt.Errorf("Follow needs only 1 argument!(the url of the RSS you want to follow)")
-	}
-
-	if len(cmd.args) < 1 {
-		return fmt.Errorf("Follow needs only 1 argument!(the url of the RSS you want to follow)")
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Error! Command usage: %s <feed_url>", cmd.name)
 	}
 
 	cx := context.Background()
 
 	feed, err := s.db.GetFeedByUrl(cx, cmd.args[0])
 	if err != nil {
-		return fmt.Errorf("Feed not found, url missing. Maybe you should add this feed yourself!")
+		return fmt.Errorf("Feed not found, url missing or mistyped. Are you sure this feed is present?")
 	}
 
-	params := database.CreateFeedFollowParams{
+	feedFollow, err := s.db.CreateFeedFollow(cx, database.CreateFeedFollowParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		UserID:    user.ID,
 		FeedID:    feed.ID,
-	}
-
-	feedFollow, err := s.db.CreateFeedFollow(cx, params)
+	})
 	if err != nil {
 		return fmt.Errorf("Something went wrong!\nErr:%w\n", err)
 	}
@@ -47,9 +41,34 @@ func handlerFollow(s *state, cmd command, user database.User) error {
 	return nil
 }
 
+func handlerUnfollow(s *state, cmd command, user database.User) error {
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Error! Command usage: %s <feed_url>", cmd.name)
+	}
+
+	cx := context.Background()
+
+	feed, err := s.db.GetFeedByUrl(cx, cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("Feed not found, url missing or mistyped. Are you sure this feed is present?")
+	}
+
+	err = s.db.DeleteFeedFollowById(cx, database.DeleteFeedFollowByIdParams{
+		UserID: user.ID,
+		FeedID: feed.ID,
+	})
+	if err != nil {
+		return fmt.Errorf("Something went wrong. Err: %w\n", err)
+	}
+
+	fmt.Printf("Feed %s unfollowed successfully.\n", feed.Name)
+
+	return nil
+}
+
 func handlerFollowing(s *state, cmd command, user database.User) error {
 	if len(cmd.args) > 0 {
-		return fmt.Errorf("Following doesn't need args!")
+		return fmt.Errorf("Error! command %s doesn't need arguments!", cmd.name)
 	}
 
 	cx := context.Background()
