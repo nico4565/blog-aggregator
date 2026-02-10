@@ -9,7 +9,7 @@ import (
 	"github.com/nico4565/blog-aggregator/internal/database"
 )
 
-func handlerFollow(s *state, cmd command) error {
+func handlerFollow(s *state, cmd command, user database.User) error {
 	if len(cmd.args) > 1 {
 		return fmt.Errorf("Follow needs only 1 argument!(the url of the RSS you want to follow)")
 	}
@@ -23,11 +23,6 @@ func handlerFollow(s *state, cmd command) error {
 	feed, err := s.db.GetFeedByUrl(cx, cmd.args[0])
 	if err != nil {
 		return fmt.Errorf("Feed not found, url missing. Maybe you should add this feed yourself!")
-	}
-
-	user, err := s.db.GetUser(cx, s.configPtr.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("User not found!")
 	}
 
 	params := database.CreateFeedFollowParams{
@@ -52,17 +47,12 @@ func handlerFollow(s *state, cmd command) error {
 	return nil
 }
 
-func handlerFollowing(s *state, cmd command) error {
+func handlerFollowing(s *state, cmd command, user database.User) error {
 	if len(cmd.args) > 0 {
 		return fmt.Errorf("Following doesn't need args!")
 	}
 
 	cx := context.Background()
-
-	user, err := s.db.GetUser(cx, s.configPtr.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("User not found!")
-	}
 
 	currentUserFeeds, err := s.db.GetFeedFollowByUser(cx, user.ID)
 	if err != nil {

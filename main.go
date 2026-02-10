@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"os"
 
@@ -30,10 +32,10 @@ func main() {
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
 	cmds.register("agg", handlerAgg)
-	cmds.register("addfeed", handlerAddFeed)
+	cmds.register("addfeed", middelwareLogingWrapper(handlerAddFeed))
 	cmds.register("feeds", handlerListFeeds)
-	cmds.register("follow", handlerFollow)
-	cmds.register("following", handlerFollowing)
+	cmds.register("follow", middelwareLogingWrapper(handlerFollow))
+	cmds.register("following", middelwareLogingWrapper(handlerFollowing))
 
 	input := os.Args[:]
 	if len(input) < 2 {
@@ -50,4 +52,16 @@ func main() {
 		log.Fatalf("Error:%s", err)
 	}
 
+}
+
+func middelwareLogingWrapper(handler func(s *state, cmd command, user database.User) error) func(s *state, cmd command) error {
+
+	return func(s *state, cmd command) error {
+		user, err := s.db.GetUser(context.Background(), s.configPtr.CurrentUserName)
+		if err != nil {
+			return fmt.Errorf("User not found!")
+		}
+
+		return handler(s, cmd, user)
+	}
 }

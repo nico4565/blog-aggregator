@@ -28,7 +28,7 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 
 	if len(cmd.args) > 2 {
 		return fmt.Errorf("AddFeed needs only 2 arguments. Rss name and url!")
@@ -49,10 +49,6 @@ func handlerAddFeed(s *state, cmd command) error {
 	url := cmd.args[1]
 
 	cx := context.Background()
-	user, err := s.db.GetUser(cx, s.configPtr.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("Error users not Found!\nError:%s", err)
-	}
 
 	params := database.StoreFeedParams{
 		ID:        id,
