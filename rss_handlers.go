@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/url"
 	"time"
 
@@ -12,18 +13,47 @@ import (
 
 func handlerAgg(s *state, cmd command) error {
 
-	if len(cmd.args) > 0 {
-		return fmt.Errorf("Error! command %s doesn't need arguments!", cmd.name)
+	if len(cmd.args) != 1 {
+		return fmt.Errorf("Error! Command usage: %s <time_duration>! time_duration examples: \"1m\", \"1m1s\",\"1h\" and so on.", cmd.name)
 	}
 
-	ctx := context.Background()
+	timeBetweenRequests, err := time.ParseDuration(cmd.args[0])
+	if err != nil {
+		return err
+	}
 
-	feed, err := fetchFeed(ctx, "https://www.wagslane.dev/index.xml")
+	fmt.Printf("Collecting feeds every %s", cmd.args[0])
+
+	ticker := time.NewTicker(timeBetweenRequests)
+	for ; ; <-ticker.C {
+		err = scrapeFeeds(s)
+		if err != nil {
+			return err
+		}
+	}
+}
+
+func scrapeFeeds(s *state) error {
+	cx := context.Background()
+	feedToFetch, err := s.db.GetNextFeedToFetch(cx)
+	if err != nil {
+		return fmt.Errorf("Error: Couldn't get next feed to fetch!")
+	}
+
+	err = s.db.MarkFeedFetched(cx, feedToFetch.ID)
+	if err != nil {
+		return fmt.Errorf("Error: Couldn't get mark feed %s with id \"%s\"as fetched!", feedToFetch.Name, feedToFetch.ID)
+	}
+
+	feedData, err := fetchFeed(cx, feedToFetch.Url)
 	if err != nil {
 		return fmt.Errorf("Error fetching feed!\n%s", err)
 	}
 
-	printRSSFeed(feed)
+	for _, item := range feedData.Channel.Item {
+		fmt.Printf("Found post: %s\n", item.Title)
+	}
+	log.Printf("Feed %s collected, %v posts found", feedToFetch.Name, len(feedData.Channel.Item))
 
 	return nil
 }
@@ -102,7 +132,7 @@ func handlerListFeeds(s *state, cmd command) error {
 	}
 
 	for i, feed := range feeds {
-		fmt.Printf("feed %d\n", i)
+		fmt.Printf("-- feed %d --\n", i)
 		fmt.Println("")
 
 		printFeedEntity(feed)
@@ -124,6 +154,7 @@ func printFeedEntity(feed database.Feed) {
 	fmt.Printf("Name: %v\n", feed.Name)
 	fmt.Printf("Url: %v\n", feed.Url)
 	fmt.Printf("UserId: %v\n", feed.UserID)
+	fmt.Printf("LastFetchedAt: %v\n", feed.LastFetchedAt)
 }
 
 func printRSSFeed(feed *RSSFeed) {
