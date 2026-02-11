@@ -2,9 +2,11 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,7 +42,9 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("Error: Couldn't get next feed to fetch!")
 	}
 
-	err = s.db.MarkFeedFetched(cx, feedToFetch.ID)
+	feed_id := feedToFetch.ID
+
+	err = s.db.MarkFeedFetched(cx, feed_id)
 	if err != nil {
 		return fmt.Errorf("Error: Couldn't get mark feed %s with id \"%s\"as fetched!", feedToFetch.Name, feedToFetch.ID)
 	}
@@ -50,10 +54,33 @@ func scrapeFeeds(s *state) error {
 		return fmt.Errorf("Error fetching feed!\n%s", err)
 	}
 
+	postsStoredCounter := 0
+
 	for _, item := range feedData.Channel.Item {
+
 		fmt.Printf("Found post: %s\n", item.Title)
+		t := parseStringToTime(item.PubDate)
+		_, err = s.db.StorePost(cx, database.StorePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       sql.NullString{String: item.Title, Valid: item.Title != ""},
+			Url:         item.Link,
+			Description: sql.NullString{String: item.Description, Valid: item.Description != ""},
+			PublishedAt: sql.NullTime{Time: t, Valid: t != time.Time{}},
+			FeedID:      feed_id,
+		})
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint \"posts_url_key\"") {
+				postsStoredCounter++
+				continue
+			}
+			log.Printf("Couldn't create post: %v", err)
+			continue
+		}
+		postsStoredCounter++
 	}
-	log.Printf("Feed %s collected, %v posts found", feedToFetch.Name, len(feedData.Channel.Item))
+	log.Printf("Feed %s collected\nPosts found: %d\nPosts stored: %d\n", feedToFetch.Name, len(feedData.Channel.Item), postsStoredCounter)
 
 	return nil
 }
@@ -145,6 +172,23 @@ func handlerListFeeds(s *state, cmd command) error {
 	}
 
 	return nil
+}
+
+func parseStringToTime(timeString string) time.Time {
+	layout1 := time.RFC1123Z
+	layout2 := time.RFC1123
+
+	t, err := time.Parse(layout1, timeString)
+	if err != nil {
+		t, err = time.Parse(layout2, timeString)
+		if err != nil {
+			log.Printf("couldn't parse date %q: %v", timeString, err)
+			return time.Time{}
+		}
+		return t
+	}
+
+	return t
 }
 
 func printFeedEntity(feed database.Feed) {
