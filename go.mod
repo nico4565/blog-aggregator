@@ -1,4 +1,4 @@
-module github.com/nico4565/blog-aggregator
+module github.com/nico4565/gator
 
 go 1.25.3
 
