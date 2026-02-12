@@ -1,5 +1,5 @@
 # GATOR THE BLOG AGGREGATOR 🐊
-**-------------------------------------------------------**
+
 
 [RSS](https://en.wikipedia.org/wiki/RSS) feed aggregator in Go! We'll call it "Gator", you know, because aggreGATOR 🐊. Anyhow, it's a CLI tool that allows users to:
 
@@ -11,7 +11,7 @@
 RSS feeds are a way for websites to publish updates to their content. You can use this project to keep up with your favorite blogs, news sites, podcasts, and more!
 
 ## SETUP
-**-------------------------------------------------------**
+
 
 You will need:
 
@@ -40,7 +40,7 @@ You will need:
 
 
 ## Installation
-**-------------------------------------------------------**
+
 
 ```bash
 go install github.com/nico4565/gator@latest
@@ -48,7 +48,7 @@ psql -c "CREATE DATABASE gator;"
 ```
 
 ## Config
-**-------------------------------------------------------**
+
 
 To use gator, you must first create a `.gatorconfig.json` within your home directory with the following minimal config (url needs tweaking to work with your configuration of postgres)
 ```json
