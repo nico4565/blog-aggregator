@@ -57,3 +57,43 @@ To use gator, you must first create a `.gatorconfig.json` within your home direc
 }
 
 if it doesn't work you can try to remove the ssl part
+
+# Gator CLI Commands
+
+A quick reference for the common commands in the **Gator** CLI tool.  
+
+## Common Commands
+
+| Command | Description |
+|---------|-------------|
+| `register <name>` | Create a new user |
+| `login <name>` | Set the current user |
+| `addfeed <name> <url>` | Add a feed with a name and URL |
+| `follow <url>` | Follow a feed by URL |
+| `unfollow <url>` | Unfollow a feed by URL |
+| `agg <duration>` | Continuously fetch posts at the given interval (e.g., `30s`, `5m`) |
+| `browse [limit]` | List recent posts, optionally limited |
+
+## Examples
+
+```bash
+./gator register alice
+./gator login alice
+./gator addfeed "Boot.dev Blog" https://blog.boot.dev/index.xml
+./gator agg 1m
+./gator browse 20
+
+# Development Notes
+
+- The `agg` command is typically run in its own terminal since it loops on an interval.  
+- If you see database errors, verify that `DATABASE_URL` is set correctly and that Postgres is reachable.  
+
+## Project Ideas
+
+- Sorting/filtering for `browse`  
+- Pagination support  
+- Concurrency improvements in `agg`  
+- Fuzzy search  
+- Bookmarks / likes  
+- TUI interface  
+- HTTP API with authentication
