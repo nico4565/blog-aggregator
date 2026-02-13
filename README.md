@@ -57,6 +57,7 @@ To use gator, you must first create a `.gatorconfig.json` within your home direc
 }
 
 if it doesn't work you can try to remove the ssl part
+```
 
 # Gator CLI Commands
 
